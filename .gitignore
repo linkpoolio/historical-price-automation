@@ -1,0 +1,6 @@
+.env
+out/
+cache/
+broadcast/
+contracts/docs/
+lib
