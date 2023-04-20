@@ -14,6 +14,7 @@ contract HistoricalPriceScript is Script {
 
     struct Config {
         address keeperRegistryAddress;
+        uint256 maxTimeDifference;
     }
 
     function configureNetwork(
@@ -39,11 +40,11 @@ contract HistoricalPriceScript is Script {
         } else {
             deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         }
-
         vm.startBroadcast(deployerPrivateKey);
-
-        historicalPrice = new HistoricalPrice(config.keeperRegistryAddress);
-
+        historicalPrice = new HistoricalPrice(
+            config.keeperRegistryAddress,
+            config.maxTimeDifference
+        );
         vm.stopBroadcast();
     }
 }

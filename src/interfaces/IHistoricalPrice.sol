@@ -6,7 +6,11 @@ interface IHistoricalPrice {
 
     function getPriceFeedAddress() external view returns (address);
 
-    event HistoricalPriceUpdated(uint256 historicalPrice, string pricePairName);
+    event HistoricalPriceUpdated(
+        uint256 price,
+        uint80 roundId,
+        string description
+    );
 
     event HistoricalPriceRequested(uint256 targetDatetime, address priceFeed);
 

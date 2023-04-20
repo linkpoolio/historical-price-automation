@@ -15,6 +15,7 @@ contract HistoricalPriceNetworkForkTest is Test {
 
     struct Config {
         address keeperRegistryAddress;
+        uint256 maxTimeDifference;
     }
 
     function configureNetwork(
@@ -36,16 +37,19 @@ contract HistoricalPriceNetworkForkTest is Test {
     function setUp() public {
         network = vm.createSelectFork(vm.rpcUrl("mainnet"));
         config = configureNetwork("config");
-        historicalPrice = new HistoricalPrice(config.keeperRegistryAddress);
+        historicalPrice = new HistoricalPrice(
+            config.keeperRegistryAddress,
+            config.maxTimeDifference
+        );
     }
 
     function testFork_SetTargetDatetime() public {
         vm.selectFork(network);
         historicalPrice.setTarget(
-            1630000000,
+            1670862014,
             0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
         );
-        assertEq(historicalPrice.targetDatetime(), 1630000000);
+        assertEq(historicalPrice.targetDatetime(), 1670862014);
         assertEq(historicalPrice.requestCompleted(), false);
         assertEq(
             historicalPrice.getPriceFeedAddress(),
@@ -56,7 +60,7 @@ contract HistoricalPriceNetworkForkTest is Test {
     function testFork_CheckUpkeep() public {
         vm.selectFork(network);
         historicalPrice.setTarget(
-            1630000000,
+            1670862014,
             0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
         );
         (bool upkeepNeeded, bytes memory performData) = historicalPrice
@@ -64,10 +68,11 @@ contract HistoricalPriceNetworkForkTest is Test {
         assertEq(upkeepNeeded, true);
     }
 
-    function testFork_PerformUpkeep() public {
+    // Case 1: Timestamp is within the maxTimeDifference
+    function testFork_PerformUpkeepCase1() public {
         vm.selectFork(network);
         historicalPrice.setTarget(
-            1630000000,
+            1670862014,
             0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
         );
         (bool upkeepNeeded, bytes memory performData) = historicalPrice
@@ -75,6 +80,22 @@ contract HistoricalPriceNetworkForkTest is Test {
         vm.prank(config.keeperRegistryAddress);
         historicalPrice.performUpkeep(performData);
         assertEq(historicalPrice.requestCompleted(), true);
-        assertEq(historicalPrice.historicalPrice(), 311808795457);
+        assertEq(historicalPrice.historicalPrice(), 124956000000);
+        assertEq(
+            historicalPrice.historicalPriceRoundId(),
+            92233720368547796857
+        );
+    }
+
+    // Case 2: Timestamp is outside the maxTimeDifference
+    function testFork_PerformUpkeepCase2() public {
+        vm.selectFork(network);
+        historicalPrice.setTarget(
+            1355329214,
+            0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
+        );
+        (bool upkeepNeeded, bytes memory performData) = historicalPrice
+            .checkUpkeep("");
+        assertEq(upkeepNeeded, false);
     }
 }
