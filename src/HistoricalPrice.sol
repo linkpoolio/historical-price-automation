@@ -4,7 +4,6 @@ pragma solidity ^0.8.17;
 import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/interfaces/automation/AutomationCompatibleInterface.sol";
 import "@src/interfaces/IAggregatorV3Interface.sol";
 import "@src/interfaces/IHistoricalPrice.sol";
-import "forge-std/console.sol";
 
 /**
  * @title HistoricalPrice
@@ -223,12 +222,9 @@ contract HistoricalPrice is IHistoricalPrice, AutomationCompatibleInterface {
         // If the closest timestamp difference is less than the max time difference, return the price and round ID
         if (answer == 0) {
             if (closestTimestampDiff <= maxTimeDifference) {
-                console.log(closestTimestampDiff);
-                console.log(maxTimeDifference);
                 answer = uint256(closestPrice);
                 roundId = closestRoundId;
             } else {
-                console.log("No historical price found");
                 return (0, 0);
             }
         }
